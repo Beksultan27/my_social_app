@@ -1,20 +1,11 @@
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.views.generic import TemplateView, View, CreateView, ListView, DetailView, UpdateView, DeleteView
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Profile
 from .forms import *
-
-
-class Home(TemplateView):
-    template_name = 'base.html'
-
-    # def get(self, request, *args, **kwargs):
-    #     return render(request, 'pages/dashboard.html', {})
 
 
 class RegisterView(CreateView):
@@ -133,7 +124,6 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-# PROFILE UPDATE VIEW
 class ProfileUpdateView(LoginRequiredMixin, ProfileObjectMixin, UpdateView):
     queryset = Profile.objects.all()
     context_object_name = 'profile'
