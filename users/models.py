@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from datetime import datetime
 from django.contrib.auth.models import User
+# from actions.models import Contact
 
 GENDER_CHOICES = [
     ('Male', 'Male'),
@@ -76,9 +77,6 @@ class Profile(models.Model):
     def get_absolute_url(self, *args, **kwargs):
         return reverse('profiles:profiles-detail', kwargs={'id': self.pk})
 
-    # def get_create_url(*args, **kwargs):
-    #     return reverse('profiles:profiles-create')
-
     def get_update_url(self, *args, **kwargs):
         return reverse('profiles:profiles-update', kwargs={'id': self.pk})
 
@@ -102,6 +100,10 @@ class Profile(models.Model):
     #
     # def get_social_create_url(self, *args, **kwargs):
     #     return reverse('profiles:socials-create', kwargs={'id': self.pk})
+
+
+# User.add_to_class('following', models.ManyToManyField('self',
+#                   through=Contact, related_name='followers', symmetrical=False))
 
 
 # # EDUCATION MODEL MANAGER

@@ -11,6 +11,9 @@
     </div>
     <div class="card-body text-center">
       <div class="card-left">
+            <span class="count">
+                {{ post.post_total_views }} view{{ post.post_total_views|pluralize }}
+            </span>
         <p class="card-text">{{post.description}}</p>
         <p class="card-text">Author: {{post.owner}}</p>
         <p class="card-text">Created At: {{post.created_at}}</p>

@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from django.views.generic import TemplateView, View, CreateView, ListView, DetailView, UpdateView, DeleteView
+from django.views.generic import View, CreateView, ListView, DetailView, UpdateView, DeleteView
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import AnonymousUser
 
 from .forms import *
 
@@ -88,29 +89,7 @@ class ProfileListView(ListView):
         return context
 
 
-# class ProfileCreateView(LoginRequiredMixin, CheckAuthProfileMixin, CreateView):
-#     queryset = Profile.objects.all()
-#     template_name = 'profiles/profile_create.html'
-#     form_class = ProfileForm
-#
-#     def form_valid(self, form):
-#         form.instance.user = self.request.user
-#         messages.success(self.request, 'Profile has been created successfully!')
-#         return super(ProfileCreateView, self).form_valid(form)
-#
-#     def get_context_data(self, *args, **kwargs):
-#         context = super(ProfileCreateView, self).get_context_data(*args, **kwargs)
-#
-#         if self.get_object() is None:
-#             context['title'] = 'Create Profile'
-#             return context
-#         else:
-#             context['title'] = 'Create Profile'
-#             context['profile'] = self.get_object()
-#             return context
-
-
-class ProfileDetailView(LoginRequiredMixin, DetailView):
+class ProfileDetailView(DetailView):
     queryset = Profile.objects.all()
     context_object_name = 'profile'
     template_name = 'profiles/profile_detail.html'

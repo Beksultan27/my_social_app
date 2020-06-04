@@ -3,8 +3,6 @@ from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import View, DetailView, UpdateView, DeleteView, CreateView
-from PIL import Image
-from django.core.files.base import ContentFile
 
 from .models import Post, Like, Unlike
 from .forms import PostModelForm

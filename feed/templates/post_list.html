@@ -22,7 +22,9 @@
     <div class="card-body d-flex">
       <div class="card-left">
         <a href="{{post.get_absolute_url}}"><p class="lead m-0">{{post.title}}</p></a>
-        <small class="text-muted">Author: {{post.owner}}</small>
+{#        {% for profile in profiles %}#}
+            Author: <a class="" href="{% url 'profiles:profiles-list'%}{{post.owner.id}}/detail" >{{post.owner}}</a>
+{#        {% endfor %}#}
         {% if post.image %}
             {% thumbnail post.image "300x200" crop="center" as im %}
             <a href="{{post.get_absolute_url}}"><img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}"></a>
@@ -32,9 +34,14 @@
       <div class="card-right">
         <a href="{{post.get_like_url}}" class="btn btn-sm">Like {{post.like_set.all|length}}</a>
         <a href="{{post.get_unlike_url}}" class="btn btn-sm">Unlike {{post.unlike_set.all|length}}</a>
+        <span class="count">
+            {{ post.post_total_views }} view{{ post.post_total_views|pluralize }}
+        </span>
+
 {#        <a href="{{post.get_absolute_url}}" class="btn btn-outline-primary ml-3">Explore#}
 {#          {{post.comment_set.all|length}}</a>#}
       </div>
+
     </div>
   </div>
   {% endfor %}

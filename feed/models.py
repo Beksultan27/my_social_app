@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.conf import settings
+import redis
+
+
+r = redis.StrictRedis(host=settings.REDIS_HOST,
+                      port=settings.REDIS_PORT,
+                      db=settings.REDIS_DB)
 
 
 class PostManager(models.Manager):
@@ -63,6 +70,18 @@ class Post(models.Model):
     def get_comment_create_url(self, *args, **kwargs):
         return reverse('comments:comments-create', kwargs={'id': self.pk})
 
+    def get_like_url(self, *args, **kwargs):
+        return reverse('posts:post-likes', kwargs={'id': self.pk})
+
+    def get_unlike_url(self, *args, **kwargs):
+        return reverse('posts:post-unlikes', kwargs={'id': self.pk})
+
+    @property
+    def post_total_views(self):
+        post = get_object_or_404(Post, id=self.id)
+        total_views = r.incr('post:{}:views'.format(post.id))
+        return total_views
+
 
 class Like(models.Model):
     post = models.ForeignKey(Post, default=1, on_delete=models.CASCADE)
@@ -72,9 +91,6 @@ class Like(models.Model):
 
     def __str__(self, *args, **kwargs):
         return self.post.title
-
-    def get_like_url(self, *args, **kwargs):
-        return reverse('likes:post-likes', kwargs={'id': self.pk})
 
 
 class Unlike(models.Model):
@@ -86,6 +102,4 @@ class Unlike(models.Model):
     def __str__(self, *args, **kwargs):
         return self.post.title
 
-    def get_unlike_url(self, *args, **kwargs):
-        return reverse('unlikes:post-unlikes', kwargs={'id': self.pk})
 

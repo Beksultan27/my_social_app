@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load thumbnail %}
 
 {% block content %}
     <div class="profiles-detail">
@@ -16,7 +17,11 @@
         <div class="profile-detail-inner d-detail-grid">
             <div class=""></div>
             <div class="text-center">
-                <img width="400" src="{{profile.image.url}}" alt="">
+
+            {% thumbnail profile.image "300x200" crop="center" as im %}
+                <a href="{{profile.image.url}}"><img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}"></a>
+            {% endthumbnail %}
+
                 <p class="lead mb-2">{{profile.name}}</p>
                 <p class="mb-2 text-muted">{{profile.profession}}</p>
                 <p class="text-muted">{{profile.location}}</p>
