@@ -5,7 +5,8 @@
 {% block content %}
     <div class="profiles-detail">
         <header class="page-header d-flex">
-            <h3 class="page-heading m-0">{{title}}</h3>
+            <h3 class="page-heading m-0">{{title}} </h3>
+
             {% if user.is_authenticated and profile.user == user %}
                 <div class="btn-group">
                     <a href="{{profile.get_update_url}}" class="btn btn-outline-success">EDIT PROFILE</a>
@@ -18,24 +19,54 @@
             <div class=""></div>
             <div class="text-center">
 
-            {% thumbnail profile.image "300x200" crop="center" as im %}
-                <a href="{{profile.image.url}}"><img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}"></a>
-            {% endthumbnail %}
+                {% thumbnail profile.image "1000" as big %}
+                    {% thumbnail profile.image "200x150" crop="center" as small %}
+                        <a href="{{ big.url }}" title="norm posmotri!"><img src="{{ small.url }}"></a>
+                    {% endthumbnail %}
+                {% endthumbnail %}
+
+
+                {% with total_followers=user.followers.count %}
+                    <span class="count">
+                    <span class="total">{{ total_followers }}</span>
+                    follower{{ total_followers|pluralize }}
+                    </span>
+                    {% if user.is_authenticated and user.id != request.profile.id %}
+                        <a href="#" data-id="{{ user.id }}"
+                           data-action="{% if request.user in user.followers.all %}
+                           unfollow {% else %} follow {% endif %}" class="follow button">
+                            {% if request.user not in user.followers.all %}
+                                Follow
+                            {% else %}
+                                Unfollow
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                    <div id="image-list" class="image-container">
+                        {% include "list_ajax.html" with images=user.images_created.all %}
+                    </div>
+                {% endwith %}
+
+                <p class="lead mb-2">{{ profile.followers }} <br>
+                                    user.id: {{ user.id }} {{ user }} <br>
+                                    request.user.id: {{ request.user.id }} {{ request.user }} <br>
+                                    request.user.id: {{ profile.user_id }} <br>
+                                    profile.id: {{ profile.id }} {{ profile }}</p>
 
                 <p class="lead mb-2">{{profile.name}}</p>
                 <p class="mb-2 text-muted">{{profile.profession}}</p>
                 <p class="text-muted">{{profile.location}}</p>
-                      <div class="btn-group">
-                        <a href="{{profile.get_experience_url}}" class="btn btn-outline-primary">EXPERIENCES</a>
-                        <a href="{{profile.get_education_url}}" class="btn btn-dark">EDUCATIONS</a>
-                        {% if profile.social %}
-                        <a href="{{profile.social.get_absolute_url}}" class="btn btn-outline-info">SOCIAL PAGE</a>
-                        {% else %}
-                        {% if user.is_authenticated and profile.user == user %}
-                        <a href="{{profile.get_social_create_url}}" class="btn btn-outline-info">SOCIAL PAGE</a>
-                        {% endif %}
-                        {% endif %}
-                      </div>
+{#                      <div class="btn-group">#}
+{#                        <a href="{{profile.get_experience_url}}" class="btn btn-outline-primary">EXPERIENCES</a>#}
+{#                        <a href="{{profile.get_education_url}}" class="btn btn-dark">EDUCATIONS</a>#}
+{#                        {% if profile.social %}#}
+{#                           <a href="{{profile.social.get_absolute_url}}" class="btn btn-outline-info">SOCIAL PAGE</a>#}
+{#                        {% else %}#}
+{#                        {% if user.is_authenticated and profile.user == user %}#}
+{#                        <a href="{{profile.get_social_create_url}}" class="btn btn-outline-info">SOCIAL PAGE</a>#}
+{#                        {% endif %}#}
+{#                        {% endif %}#}
+{#                      </div>#}
             </div>
             <div class=""></div>
         </div>
@@ -52,3 +83,28 @@
         </div>
     </div>
 {% endblock content %}
+
+{% block domready %}
+  $('a.follow').click(function(e){
+    e.preventDefault();
+    $.post('{% url "users:user_follow" %}',
+      {
+        id: $(this).data('id'),
+        action: $(this).data('action')
+      },
+      function(data){
+        if (data['status'] == 'ok') {
+          let previous_action = $('a.follow').data('action');
+        console.log(previous_action)
+
+          $('a.follow').data('action', previous_action == 'unfollow' ? 'follow' : 'unfollow');
+
+          $('a.follow').text(previous_action == 'unfollow' ? 'Follow' : 'Unfollow');
+
+          let previous_followers = parseInt($('span.count .total').text());
+          $('span.count .total').text(previous_action == 'unfollow' ? previous_followers - 1 : previous_followers + 1);
+        }
+      }
+    );
+  });
+{% endblock %}

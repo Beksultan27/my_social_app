@@ -4,7 +4,5 @@ from . import views
 app_name = 'actions'
 
 urlpatterns = [
-    path('like/', views.post_like, name='like'),
-
 ]
 

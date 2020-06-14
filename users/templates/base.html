@@ -31,7 +31,7 @@
 {#                    {% for profile in profiles %}#}
 {#                        {% if user.id == profile.user_id %}#}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'profiles:profiles-list'%}{{ user.id }}/detail"> {{ profile }} TVOI PROFILE</a>
+                                <a class="nav-link" href="{% url 'profiles:profiles-list'%}{{ user.id }}/detail">TVOI PROFILE</a>
                             </li>
 {#                        {% endif %}#}
 {#                    {% endfor %}#}
@@ -83,13 +83,29 @@
             </li>
 
         </ul>
-        <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
+{#        {% if query %}#}
+{#            <h1>Posts containing "{{ query }}"</h1>#}
+{#            <h3>#}
+{#                {% with results.count as total_results %}#}
+{#                    Found {{ total_results }} result{{ total_results|pluralize }}#}
+{#                {% endwith %}#}
+{#            </h3>#}
+{#            {% for post in results %}#}
+{#                <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>#}
+{#                {{ post.description|truncatewords:5 }}#}
+{#            {% empty %}#}
+{#                <p>There are no results for your query.</p>#}
+{#            {% endfor %}#}
+{#            <p><a href="{% url "feed:post_search" %}">Search again</a></p>#}
+{#        {% else %}#}
+            <form class="form-inline my-2 my-lg-0" method='get' action="{% url 'feed:post_search' %}">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+{#                {{ form.as_p }}#}
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Poisk po postam </button>
+            </form>
+{#        {% endif %}#}
     </div>
 </nav>
-
 
 {#{% block body %}#}
 
@@ -146,7 +162,6 @@
       {% endblock %}
        });
   </script>
-
 
 </body>
 </html>

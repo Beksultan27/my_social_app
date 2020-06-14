@@ -11,7 +11,8 @@ urlpatterns = [
     path('accounts/profile/', include('users.urls', namespace='profiles')),
     path('', include('feed.urls', namespace='posts')),
     path('posts/', include('feed.urls', namespace='posts')),
-    path('posts/', include('comments.urls', namespace='comments')),
+    path('post/', include('comments.urls', namespace='comments')),
+    path('profiles/', include('actions.urls', namespace='profiles')),
 ]
 
 if settings.DEBUG:

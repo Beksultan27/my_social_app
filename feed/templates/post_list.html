@@ -32,8 +32,26 @@
         {% endif %}
       </div>
       <div class="card-right">
-        <a href="{{post.get_like_url}}" class="btn btn-sm">Like {{post.like_set.all|length}}</a>
-        <a href="{{post.get_unlike_url}}" class="btn btn-sm">Unlike {{post.unlike_set.all|length}}</a>
+
+            {% with total_likes=post.users_like.count users_like=post.users_like.all %}
+                <div class="image-info">
+                    <div>
+                        <span class="count">
+                         <span class="total">{{ total_likes }}</span>
+                         like{{ total_likes|pluralize }}
+                        </span>
+                        <a href="#" data-id="{{ post.id }}" data-action="{% if request.user in users_like %}unlike{% else %}like{% endif %}" class="like button">
+                            {% if request.user not in users_like %}
+                                Like
+                            {% else %}
+                                Unlike
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            {% endwith %}
+
+
         <span class="count">
             {{ post.post_total_views }} view{{ post.post_total_views|pluralize }}
         </span>
@@ -72,3 +90,30 @@
   </div>
 </div>
 {% endblock content %}
+
+{% block domready %}
+  $('a.like').click(function(e){
+    e.preventDefault();
+    $.post('{% url "users:user_follow" %}',
+      {
+        id: $(this).data('id'),
+        action: $(this).data('action')
+      },
+      function(data){
+        if (data['status'] == 'ok')
+        {
+          var previous_action = $('a.like').data('action');
+
+          $('this.like').data('action', previous_action == 'like' ? 'unlike' : 'like');
+
+          $('this.like').text(parseInt(previous_action) == 'like' ? 'Unlike' : 'Like');
+
+          var previous_likes = parseInt($('span.count .total').text());
+
+          $('span.count .total').text(previous_action == 'unlike' ? parseInt(previous_likes) - 1 : parseInt(previous_likes) + 1);
+          console.log(previous_likes, previous_action)
+        }
+      }
+    );
+  });
+{% endblock %}

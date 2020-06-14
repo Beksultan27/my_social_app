@@ -2,6 +2,10 @@ from django import forms
 from .models import Post
 
 
+class SearchForm(forms.Form):
+    query = forms.CharField()
+
+
 class PostModelForm(forms.ModelForm):
     title = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control form-control-lg', 'placeholder': 'Enter Title'})
@@ -30,7 +34,6 @@ class PostModelForm(forms.ModelForm):
             raise forms.ValidationError('Invalid description!')
         else:
             return description
-
 
 
 

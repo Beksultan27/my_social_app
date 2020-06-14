@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.conf import settings
 import redis
-
+from django.contrib.contenttypes.models import ContentType
 
 r = redis.StrictRedis(host=settings.REDIS_HOST,
                       port=settings.REDIS_PORT,
@@ -25,30 +25,14 @@ class PostManager(models.Manager):
         return get_object_or_404(self, pk=post_id, owner=user)
 
 
-class LikeManager(models.Manager):
-    def find_is_liked(self, post, user):
-        return self.filter(post=post, owner=user)
-
-    def create_like(self, post, user):
-        like = self.create(post=post, owner=user)
-        like.save()
-
-
-class UnlikeManager(models.Manager):
-    def find_is_unliked(self, post, user):
-        return self.filter(post=post, owner=user)
-
-    def create_unlike(self, post, user):
-        unlike = self.create(post=post, owner=user)
-        unlike.save()
-
-
 class Post(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     image = models.ImageField(upload_to='uploads/%Y/%m/%d/', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, default=1, on_delete=models.CASCADE, null=True)
+    users_like = models.ManyToManyField(User, related_name='images_liked', blank=True)
+    total_likes = models.PositiveIntegerField(db_index=True, default=0)
 
     objects = PostManager()
 
@@ -70,36 +54,9 @@ class Post(models.Model):
     def get_comment_create_url(self, *args, **kwargs):
         return reverse('comments:comments-create', kwargs={'id': self.pk})
 
-    def get_like_url(self, *args, **kwargs):
-        return reverse('posts:post-likes', kwargs={'id': self.pk})
-
-    def get_unlike_url(self, *args, **kwargs):
-        return reverse('posts:post-unlikes', kwargs={'id': self.pk})
-
     @property
     def post_total_views(self):
         post = get_object_or_404(Post, id=self.id)
         total_views = r.incr('post:{}:views'.format(post.id))
         return total_views
-
-
-class Like(models.Model):
-    post = models.ForeignKey(Post, default=1, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, default=1, on_delete=models.CASCADE)
-
-    objects = LikeManager()
-
-    def __str__(self, *args, **kwargs):
-        return self.post.title
-
-
-class Unlike(models.Model):
-    post = models.ForeignKey(Post, default=1, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, default=1, on_delete=models.CASCADE)
-
-    objects = UnlikeManager()
-
-    def __str__(self, *args, **kwargs):
-        return self.post.title
-
 

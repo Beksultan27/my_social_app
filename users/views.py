@@ -1,11 +1,16 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.views.generic import View, CreateView, ListView, DetailView, UpdateView, DeleteView
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import AnonymousUser
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
+from actions.utils import create_action
+from actions.models import Contact
 from .forms import *
 
 
@@ -136,3 +141,23 @@ class ProfileDeleteView(LoginRequiredMixin, ProfileObjectMixin, DeleteView):
     def get_success_url(self, *args, **kwargs):
         messages.success(self.request, 'Profile has been deleted successfully!')
         return reverse('profiles:profiles-list')
+
+
+@require_POST
+@login_required
+def user_follow(request):
+    user_id = request.POST.get('id')
+    action = request.POST.get('action')
+
+    if user_id and action:
+        try:
+            user = User.objects.get(id=user_id)
+            if action == 'follow':
+                Contact.objects.get_or_create(user_from=request.user, user_to=user)
+                create_action(request.user, 'is following', user)
+            else:
+                Contact.objects.filter(user_from=request.user, user_to=user).delete()
+            return JsonResponse({'status': 'ok'})
+        except Profile.DoesNotExist:
+            return JsonResponse({'status': 'ko'})
+    return JsonResponse({'status': 'ko'})

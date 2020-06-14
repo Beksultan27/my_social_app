@@ -2,10 +2,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import View, DetailView, UpdateView, DeleteView, CreateView
+from django.views.generic import DetailView, UpdateView, DeleteView, CreateView
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from actions.utils import create_action
+from django.http import JsonResponse, HttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
 
-from .models import Post, Like, Unlike
-from .forms import PostModelForm
+from .models import Post
+from .forms import PostModelForm, SearchForm
 
 
 class PostListView(CreateView):
@@ -103,52 +109,57 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
         return reverse('posts:posts-list')
 
 
-class PostLikeView(LoginRequiredMixin, View):
-    lookup = 'id'
-
-    def get_object(self, *args, **kwargs):
-        return get_object_or_404(Post, pk=self.kwargs.get(self.lookup))
-
-    def get(self, request, id=None, *args, **kwargs):
-        is_liked = Like.objects.find_is_liked(self.get_object(), request.user)
-
-        if is_liked.exists():
-            messages.error(request, 'Post has already been liked!')
-            return redirect(reverse('posts:posts-list'))
-        else:
-            is_unliked = Unlike.objects.find_is_unliked(self.get_object(), request.user)
-
-            if is_unliked.exists():
-                is_unliked.delete()
-                Like.objects.create_like(self.get_object(), request.user)
-                messages.success(request, 'Post has been liked!')
-                return redirect(reverse('posts:posts-list'))
+@login_required
+@require_POST
+def post_like(request):
+    post_id = request.POST.get('id')
+    action = request.POST.get('action')
+    if post_id and action:
+        try:
+            post = Post.objects.get(id=post_id)
+            if action == 'like':
+                post.users_like.add(request.user)
+                create_action(request.user, 'likes', post)
             else:
-                Like.objects.create_like(self.get_object(), request.user)
-                messages.success(request, 'Post has been liked!')
-                return redirect(reverse('posts:posts-list'))
+                post.users_like.remove(request.user)
+            return JsonResponse({'status': 'ok'})
+        except:
+            pass
+    return JsonResponse({'status': 'ok'})
 
 
-class PostUnlikeView(LoginRequiredMixin, View):
-    lookup = 'id'
+@login_required
+def post_list(request):
+    posts = Post.objects.all()
+    paginator = Paginator(posts, 10)
+    page = request.GET.get('page')
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger:
+        posts = paginator.page(1)
+    except EmptyPage:
+        if request.is_ajax():
+            return HttpResponse('')
+        posts = paginator.page(paginator.num_pages)
+    if request.is_ajax():
+        return render(request,
+                      'list_ajax.html',
+                      {'section': 'posts', 'posts': posts})
+    return render(request,
+                  'list.html',
+                  {'section': 'posts', 'posts': posts})
 
-    def get_object(self, *args, **kwargs):
-        return get_object_or_404(Post, pk=self.kwargs.get(self.lookup))
 
-    def get(self, request, id=None, *args, **kwargs):
-        is_unliked = Unlike.objects.find_is_unliked(self.get_object(), request.user)
-
-        if is_unliked.exists():
-            messages.error(request, 'Post has already been unliked!')
-            return redirect(reverse('posts:posts-list'))
-        else:
-            is_liked = Like.objects.find_is_liked(self.get_object(), request.user)
-            if is_liked.exists():
-                is_liked.delete()
-                Unlike.objects.create_unlike(self.get_object(), request.user)
-                messages.success(request, 'Post has been unliked!')
-                return redirect(reverse('posts:posts-list'))
-            else:
-                Unlike.objects.create_unlike(self.get_object(), request.user)
-                messages.success(request, 'Post has been unliked!')
-                return redirect(reverse('posts:posts-list'))
+def post_search(request):
+    form = SearchForm()
+    query = None
+    results = []
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            results = Post.objects.annotate(similarity=TrigramSimilarity('title', query)). \
+                filter(similarity__gt=0.05).order_by('-similarity')
+    return render(request, 'post_search.html', {'form': form,
+                                                'query': query,
+                                                'results': results})

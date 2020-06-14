@@ -1,0 +1,31 @@
+version: '3'
+
+
+services:
+    db:
+        image: postgres
+        environment:
+            - POSTGRES_DB=my_social_app
+            - POSTGRES_USER=beks
+            - POSTGRES_PASSWORD=beks1993
+
+    web:
+        build: .
+#        env_file:
+#            - venv
+        command: bash -c 'python3 my_social_app/manage.py collectstatic --no-input --clear && python3 my_social_app/manage.py migrate && cd my_social_app && gunicorn --bind 0.0.0.0:8000 my_social_app.wsgi'
+        volumes:
+            - .:/code
+        expose:
+            - 8000
+        depends_on:
+            - db
+        ports:
+          - "8000:8000"
+
+    nginx:
+        build: ./nginx
+        ports:
+            - 1337:80
+        depends_on:
+            - web

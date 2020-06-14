@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import PostListView, PostDetailView, PostUpdateView, PostDeleteView, PostLikeView, PostUnlikeView
+from .views import PostListView, PostDetailView, PostUpdateView, PostDeleteView
+from feed import views
 
 app_name = 'feed'
 
@@ -8,6 +9,8 @@ urlpatterns = [
     path('<int:id>/detail/', PostDetailView.as_view(), name='posts-detail'),
     path('<int:id>/update/', PostUpdateView.as_view(), name='posts-update'),
     path('<int:id>/delete/', PostDeleteView.as_view(), name='posts-delete'),
-    path('<int:id>/like/', PostLikeView.as_view(), name='post-likes'),
-    path('<int:id>/unlike/', PostUnlikeView.as_view(), name='post-unlikes'),
+    path('like/', views.post_like, name='like'),
+    path('', views.post_list, name='list'),
+    path('search/', views.post_search, name='post_search'),
 ]
+
