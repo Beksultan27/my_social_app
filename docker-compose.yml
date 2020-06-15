@@ -12,7 +12,7 @@ services:
         build: .
         env_file:
             - .env
-        command: bash -c 'python3 my_social_app/manage.py collectstatic --no-input --clear && python3 my_social_app/manage.py migrate && cd my_social_app && gunicorn --bind 0.0.0.0:8000 my_social_app.wsgi'
+        command: bash -c 'python3 manage.py migrate && cd my_social_app && gunicorn --bind 0.0.0.0:8000 my_social_app.wsgi'
         volumes:
             - .:/code
         expose:
