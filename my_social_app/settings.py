@@ -1,14 +1,16 @@
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-SECRET_KEY = 'gwma98fs*97eiq+6v478$th85fe0v-z*z(zooby)!4(5k31q(e'
+# SECRET_KEY = 'gwma98fs*97eiq+6v478$th85fe0v-z*z(zooby)!4(5k31q(e'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'gwma98fs*97eiq+6v478$th85fe0v-z*z(zooby)!4(5k31q(e')
 
-DEBUG = True
+# DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -73,10 +75,10 @@ WSGI_APPLICATION = 'my_social_app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'my_social_app',
-        'USER': 'beks',
-        'PASSWORD': 'beks1993',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DB_NAME', 'my_social_app'),
+        'USER': os.getenv('DB_USERNAME', 'beks'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'beks1993'),
     }
 }
 

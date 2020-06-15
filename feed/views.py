@@ -8,10 +8,10 @@ from django.contrib.auth.decorators import login_required
 from actions.utils import create_action
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
+from django.contrib.postgres.search import TrigramSimilarity
 
 from .models import Post
-from .forms import PostModelForm, SearchForm
+from .forms import PostModelForm
 
 
 class PostListView(CreateView):
@@ -151,15 +151,9 @@ def post_list(request):
 
 
 def post_search(request):
-    form = SearchForm()
-    query = None
+    query = request.POST.get('search_form')
     results = []
-    if 'query' in request.GET:
-        form = SearchForm(request.GET)
-        if form.is_valid():
-            query = form.cleaned_data['query']
-            results = Post.objects.annotate(similarity=TrigramSimilarity('title', query)). \
-                filter(similarity__gt=0.05).order_by('-similarity')
-    return render(request, 'post_search.html', {'form': form,
-                                                'query': query,
-                                                'results': results})
+    if query:
+        results = Post.objects.annotate(similarity=TrigramSimilarity('title', query)). \
+            filter(similarity__gt=0.05).order_by('-similarity')
+    return render(request, 'post_search.html', {'query': query, 'results': results})
